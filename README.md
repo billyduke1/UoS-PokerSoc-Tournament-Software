@@ -1,8 +1,8 @@
 # UOS Poker
 
-The website for **UOS Poker — the University of Sheffield Poker Society**: the society's
-home, three public leaderboards, and a real-time **play-money** online poker room with a
-correct No-Limit Hold'em engine, tiered AI bots, and a rated Elo ladder.
+The website and tournament management software for **UOS Poker — the University of Sheffield Poker Society**: the society's 
+information, two public leaderboards, and a real-time **play-money** online poker room with a 
+No-Limit Hold'em engine, tiered AI bots, and a rated Elo ladder.
 
 > **Play-money only.** There is no real-money gambling anywhere on this site.
 
@@ -84,48 +84,16 @@ Copy `.env.example` to `.env` for local dev; set the same keys in Railway for pr
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional | Enables "Continue with Google". |
 | `ADMIN_EMAIL` | recommended | The account that signs up with this email is auto-promoted to admin. |
 
----
-
-## Human setup checklist (Kiran)
-
-1. **Domain** — buy one, then set `SITE_URL`, `BETTER_AUTH_URL`, and the `EMAIL_FROM` domain.
-2. **Railway** — create a project, add the **Postgres** plugin, connect this GitHub repo.
-   Railway builds from the `Dockerfile`; `start:prod` runs `prisma migrate deploy` then boots.
-   Set all env vars above in the service. In production the server **refuses to start** unless
-   `BETTER_AUTH_SECRET` is a real 32+ char secret and `SITE_URL`/`BETTER_AUTH_URL` are public
-   https URLs — it prints exactly what's missing and exits, so a misconfigured deploy fails
-   loudly instead of booting insecurely.
-3. **Resend** — create an account + API key (`RESEND_API_KEY`). Add your sending domain in the
-   Resend dashboard, then add the DNS records **the server prints on first production boot**
-   (SPF + DMARC are printed in full; copy the DKIM value from the Resend dashboard). Verify the
-   domain in Resend.
-4. **Google OAuth** (optional) — Google Cloud Console → Credentials → OAuth client (Web).
-   Authorised redirect URI: `${BETTER_AUTH_URL}/api/auth/callback/google`. Set the client
-   id/secret env vars.
-5. **Society facts** — real-world details live in `apps/web/src/content/society.ts`. Unfilled
-   items render as tasteful "TBA".
-
-### First admin
-
-Sign up with the email you set as `ADMIN_EMAIL`, verify it, and that account becomes an admin
-automatically. The cockpit is at `/admin` (session codes, submissions, scheme, seasons, users,
-banner, dashboard).
 
 ---
 
-## Deployment (Railway)
 
-The repo is deploy-ready:
+## System description
 
-- **Build:** `Dockerfile` (Node 22, installs deps, generates the Prisma client, builds the SPA).
-- **Release/start:** `start:prod` → `prisma migrate deploy && node --import tsx src/index.ts`.
-- **Health check:** `GET /healthz` (configured in `railway.json`).
-- **Static SPA:** the server serves `apps/web/dist` in production and falls back to
-  `index.html` for client routes; `/api/*` and `/socket.io` stay server-routed.
+This repo has two purposes - to provide a promotional and informational website for the society, and to house the necessary software for running tournament sessions and storing persistent weekly performance data
 
-Add the Postgres plugin, set env vars, deploy. Then smoke-test the full loop:
-**sign up → verify (Resend email) → onboard nickname → play a hand → submit a session result.**
+**Promotional website:** 
+This website supplements the society's other social media pages and helps to capture a wider audience, containing both students and potential sponsors. For students, it acts as both a source of information about the society and as a learning tool for students to improve their poker game. For sponsors, it acts as a portfolio and introduction to what the society does, how it runs, and what it can provide to comapanies.
 
-> **Note on live game state:** tables and in-flight hands live in server memory (single
-> instance). A deploy mid-hand voids in-flight hands gracefully — stacks return to bankrolls
-> and players see a notice. Only `HandRecord` summaries and Elo are persisted.
+**Tournament management system:**
+The key part of this repo is the tournament backend - a custom-built piece of software to assist the society in their running of tournament session. It features in-built blind timers, adjustable blind levels, an autonomous sign-in flow, and an account system that allows for leaderboard data to be stored and presented as public leaderboards for the society.
